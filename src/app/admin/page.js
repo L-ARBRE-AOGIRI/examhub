@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { NIVEAUX, NIVEAUX_ACADEMIQUES, filieresPourNiveau, LABELS_NIVEAU } from "@/lib/constantes";
+import { NIVEAUX, NIVEAUX_ACADEMIQUES, filieresPourNiveau, LABELS_NIVEAU, LABELS_TYPE, COULEURS_TYPE, TYPES_DOCUMENT } from "@/lib/constantes";
 
 export default function Admin() {
   const { data: session, status } = useSession();
@@ -115,6 +115,11 @@ export default function Admin() {
                   <div className="grid grid-cols-2 gap-2">
                     <input className="border p-2 rounded" value={formEdition.matiere} onChange={(e) => setFormEdition({ ...formEdition, matiere: e.target.value })} placeholder="Matiere" />
                     <input className="border p-2 rounded" type="number" value={formEdition.annee} onChange={(e) => setFormEdition({ ...formEdition, annee: e.target.value })} placeholder="Annee" />
+                    <select className="border p-2 rounded" value={formEdition.type} onChange={(e) => setFormEdition({ ...formEdition, type: e.target.value })}>
+                      {TYPES_DOCUMENT.map((t) => (
+                        <option key={t.valeur} value={t.valeur}>{t.label}</option>
+                      ))}
+                    </select>
                     <select className="border p-2 rounded" value={formEdition.niveau} onChange={(e) => setFormEdition({ ...formEdition, niveau: e.target.value })}>
                       {NIVEAUX.map((n) => (
                         <option key={n.valeur} value={n.valeur}>{n.label}</option>
@@ -148,7 +153,7 @@ export default function Admin() {
               ) : (
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-medium">{ep.titre}</p>
+                    <p className="font-medium"><span className={"inline-block text-xs font-medium px-2 py-0.5 rounded mr-2 " + (COULEURS_TYPE[ep.type] || "bg-gray-100 text-gray-700")}>{LABELS_TYPE[ep.type] || ep.type}</span>{ep.titre}</p>
                     <p className="text-sm text-gray-600">{LABELS_NIVEAU[ep.niveau] || ep.niveau} - {ep.matiere}{ep.filiere ? " - " + ep.filiere : ""}</p>
                     <p className="text-sm text-gray-500">Par {ep.auteur?.nom} ({ep.auteur?.email})</p>
                     <a href={ep.fichierUrl} target="_blank" className="text-marque-600 text-sm underline">Voir le fichier</a>

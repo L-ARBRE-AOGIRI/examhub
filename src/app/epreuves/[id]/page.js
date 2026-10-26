@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
-import { LABELS_NIVEAU } from "@/lib/constantes";
+import { LABELS_NIVEAU, LABELS_TYPE, COULEURS_TYPE } from "@/lib/constantes";
 
 export default function DetailEpreuve() {
   const { id } = useParams();
@@ -31,7 +31,8 @@ export default function DetailEpreuve() {
     <main className="max-w-2xl mx-auto p-8">
       <a href="/epreuves" className="text-marque-600 underline text-sm">Retour aux epreuves</a>
 
-      <h1 className="text-2xl font-bold mt-4 mb-2">{epreuve.titre}</h1>
+      <span className={"inline-block text-xs font-medium px-2 py-0.5 rounded mt-4 " + (COULEURS_TYPE[epreuve.type] || "bg-gray-100 text-gray-700")}>{LABELS_TYPE[epreuve.type] || epreuve.type}</span>
+      <h1 className="text-2xl font-bold mt-2 mb-2">{epreuve.titre}</h1>
       <p className="text-gray-600 mb-1">{LABELS_NIVEAU[epreuve.niveau] || epreuve.niveau} - {epreuve.matiere} - {epreuve.annee}</p>
       {epreuve.filiere && <p className="text-gray-600 mb-1">Filiere : {epreuve.filiere}</p>}
       <p className="text-sm text-gray-400 mb-6">Ajoute par {epreuve.auteur?.nom || "un membre"}</p>

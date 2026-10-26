@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
-import { NIVEAUX, NIVEAUX_ACADEMIQUES, filieresPourNiveau, TYPES_DOCUMENT, LABELS_NIVEAU } from "@/lib/constantes";
+import { NIVEAUX, NIVEAUX_ACADEMIQUES, filieresPourNiveau, TYPES_DOCUMENT, LABELS_NIVEAU, LABELS_TYPE, COULEURS_TYPE } from "@/lib/constantes";
 
 export default function Publier() {
   const [message, setMessage] = useState("");
@@ -73,7 +73,8 @@ export default function Publier() {
         <fieldset disabled={chargement} className="space-y-4 min-w-0 disabled:opacity-60">
           <h1 className="text-2xl font-bold mb-4">Publier une epreuve</h1>
           <input name="titre" placeholder="Titre" className="border p-2 w-full rounded" required />
-          <select name="type" className="border p-2 w-full rounded">
+          <select name="type" className="border p-2 w-full rounded" required defaultValue="">
+            <option value="" disabled>Type de document (cours, exercice, concours...)</option>
             {TYPES_DOCUMENT.map((t) => (
               <option key={t.valeur} value={t.valeur}>{t.label}</option>
             ))}
@@ -120,7 +121,7 @@ export default function Publier() {
               <div key={ep.id} className="border rounded p-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium text-sm">{ep.titre}</p>
+                    <p className="font-medium text-sm"><span className={"inline-block text-xs font-medium px-2 py-0.5 rounded mr-2 " + (COULEURS_TYPE[ep.type] || "bg-gray-100 text-gray-700")}>{LABELS_TYPE[ep.type] || ep.type}</span>{ep.titre}</p>
                     <p className="text-xs text-gray-500">{LABELS_NIVEAU[ep.niveau] || ep.niveau}{ep.filiere ? " - " + ep.filiere : ""}</p>
                   </div>
                   <span className={"text-xs px-2 py-0.5 rounded " + badge(ep.statut)}>{ep.statut}</span>

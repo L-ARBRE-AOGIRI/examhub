@@ -1,4 +1,4 @@
-﻿export const NIVEAUX = [
+export const NIVEAUX = [
   { valeur: "LICENCE_1", label: "Licence 1" },
   { valeur: "LICENCE_2", label: "Licence 2" },
   { valeur: "LICENCE_3", label: "Licence 3" },
@@ -80,8 +80,19 @@ export function filiereValidePourNiveau(niveau, filiere) {
 export const TYPES_DOCUMENT = [
   { valeur: "EPREUVE", label: "Epreuve" },
   { valeur: "COURS", label: "Cours" },
+  { valeur: "EXERCICE", label: "Exercice" },
   { valeur: "EXAMEN", label: "Examen" },
   { valeur: "CONCOURS", label: "Concours" },
 ];
 
 export const VALEURS_TYPE = TYPES_DOCUMENT.map((t) => t.valeur);
+
+export const LABELS_TYPE = Object.fromEntries(TYPES_DOCUMENT.map((t) => [t.valeur, t.label]));
+
+export const COULEURS_TYPE = {
+  EPREUVE: "bg-marque-100 text-marque-700",
+  COURS: "bg-sky-100 text-sky-700",
+  EXERCICE: "bg-amber-100 text-amber-700",
+  EXAMEN: "bg-purple-100 text-purple-700",
+  CONCOURS: "bg-accent-100 text-accent-700",
+};

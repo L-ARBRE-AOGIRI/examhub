@@ -39,6 +39,7 @@ enum Niveau {
 enum TypeDocument {
   EPREUVE
   COURS
+  EXERCICE
   EXAMEN
   CONCOURS
 }
