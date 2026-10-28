@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import cloudinary from "@/lib/cloudinary";
 import { VALEURS_NIVEAU, VALEURS_TYPE, NIVEAUX_ACADEMIQUES, FILIERES, filiereValidePourNiveau } from "@/lib/constantes";
 
-const TAILLE_MAX = 10 * 1024 * 1024;
+const TAILLE_MAX = 4 * 1024 * 1024;
 const TYPES_AUTORISES = [
   "application/pdf",
   "application/msword",
@@ -32,7 +32,7 @@ export async function POST(req) {
     return Response.json({ erreur: "Fichier manquant" }, { status: 400 });
   }
   if (fichier.size > TAILLE_MAX) {
-    return Response.json({ erreur: "Le fichier depasse la taille maximale de 10 Mo" }, { status: 400 });
+    return Response.json({ erreur: "Le fichier depasse la taille maximale de 4 Mo" }, { status: 400 });
   }
   if (!TYPES_AUTORISES.includes(fichier.type)) {
     return Response.json({ erreur: "Type de fichier non autorise. Seuls PDF et Word sont acceptes" }, { status: 400 });

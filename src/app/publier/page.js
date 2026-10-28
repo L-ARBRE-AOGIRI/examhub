@@ -25,6 +25,13 @@ export default function Publier() {
     const form = e.target;
     const donnees = new FormData(form);
 
+    const fichierChoisi = donnees.get("fichier");
+    if (fichierChoisi && fichierChoisi.size > 4 * 1024 * 1024) {
+      setSucces(false);
+      setMessage("Fichier trop volumineux (" + (fichierChoisi.size / 1024 / 1024).toFixed(1) + " Mo). Maximum : 4 Mo. Reduisez-le (compression PDF) puis reessayez.");
+      return;
+    }
+
     setMessage("");
     setChargement(true);
 
@@ -37,6 +44,7 @@ export default function Publier() {
       let data = {};
       try {
         data = await res.json();
+        if (res.status === 413) data = { erreur: "Fichier trop volumineux. Maximum : 4 Mo." };
       } catch (err) {
         data = {};
       }
