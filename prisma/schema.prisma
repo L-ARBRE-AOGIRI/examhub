@@ -45,32 +45,46 @@ enum TypeDocument {
 }
 
 model User {
-  id                String        @id @default(cuid())
-  nom               String
-  email             String        @unique
-  motDePasse        String
-  role              Role          @default(UTILISATEUR)
-  statutCompte      StatutCompte  @default(EN_ATTENTE)
-  motifRejet        String?
-  filiere           String?
-  tokenReset        String?
-  tokenResetExpire  DateTime?
-  epreuves          Epreuve[]
-  createdAt         DateTime      @default(now())
+  id               String       @id @default(cuid())
+  nom              String
+  email            String       @unique
+  motDePasse       String
+  role             Role         @default(UTILISATEUR)
+  statutCompte     StatutCompte @default(EN_ATTENTE)
+  motifRejet       String?
+  filiere          String?
+  tokenReset       String?
+  tokenResetExpire DateTime?
+  epreuves         Epreuve[]
+  favoris          Favori[]
+  createdAt        DateTime     @default(now())
 }
 
 model Epreuve {
-  id          String         @id @default(cuid())
-  titre       String
-  type        TypeDocument   @default(EPREUVE)
-  niveau      Niveau
-  filiere     String?
-  matiere     String
-  annee       Int
-  fichierUrl  String
-  statut      StatutEpreuve  @default(EN_ATTENTE)
-  motifRejet  String?
-  auteur      User           @relation(fields: [auteurId], references: [id])
-  auteurId    String
-  createdAt   DateTime       @default(now())
+  id              String        @id @default(cuid())
+  titre           String
+  type            TypeDocument  @default(EPREUVE)
+  niveau          Niveau
+  filiere         String?
+  matiere         String
+  annee           Int
+  fichierUrl      String
+  apercuId        String?
+  telechargements Int           @default(0)
+  statut          StatutEpreuve @default(EN_ATTENTE)
+  motifRejet      String?
+  auteur          User          @relation(fields: [auteurId], references: [id])
+  auteurId        String
+  favoris         Favori[]
+  createdAt       DateTime      @default(now())
+}
+
+model Favori {
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  epreuve   Epreuve  @relation(fields: [epreuveId], references: [id], onDelete: Cascade)
+  epreuveId String
+  createdAt DateTime @default(now())
+
+  @@id([userId, epreuveId])
 }

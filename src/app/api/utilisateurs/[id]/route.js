@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 export async function DELETE(req, context) {
   const session = await getSessionActive();
   if (!session || session.user.role !== "SUPER_ADMIN") {
-    return Response.json({ erreur: "Acces refuse" }, { status: 403 });
+    return Response.json({ erreur: "Accès refusé" }, { status: 403 });
   }
 
   const { id } = await context.params;
@@ -17,5 +17,5 @@ export async function DELETE(req, context) {
   await prisma.epreuve.deleteMany({ where: { auteurId: id } });
   await prisma.user.delete({ where: { id } });
 
-  return Response.json({ message: "Utilisateur supprime" });
+  return Response.json({ message: "Utilisateur supprimé" });
 }

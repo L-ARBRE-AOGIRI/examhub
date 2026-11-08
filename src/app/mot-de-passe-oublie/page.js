@@ -1,9 +1,13 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import CadreAuth, { Spinner } from "@/components/CadreAuth";
+import Icone from "@/components/Icone";
 
 export default function MotDePasseOublie() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [succes, setSucces] = useState(false);
   const [envoi, setEnvoi] = useState(false);
 
   async function handleSubmit(e) {
@@ -20,31 +24,43 @@ export default function MotDePasseOublie() {
 
     setEnvoi(false);
     if (res.ok) {
+      setSucces(true);
       setMessage(data.message);
     } else {
+      setSucces(false);
       setMessage(data.erreur || "Erreur");
     }
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">
-        <h1 className="text-2xl font-bold mb-2">Mot de passe oublie</h1>
-        <p className="text-sm text-gray-500 mb-4">Entrez votre email, nous vous enverrons un lien pour choisir un nouveau mot de passe.</p>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 w-full rounded"
-          required
-        />
-        <button type="submit" disabled={envoi} className="bg-marque-600 text-white px-4 py-2 rounded w-full hover:bg-marque-700 disabled:opacity-50">
+    <CadreAuth
+      titre="Mot de passe oublié"
+      sousTitre="Entrez votre email : nous vous enverrons un lien pour choisir un nouveau mot de passe."
+      pied={
+        <Link href="/connexion" className="lien inline-flex items-center gap-1.5">
+          <Icone nom="retour" className="h-4 w-4" /> Retour à la connexion
+        </Link>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="email" className="etiquette">Adresse email</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="champ"
+            required
+          />
+        </div>
+        {message && <p className={succes ? "alerte-succes" : "alerte-erreur"}>{message}</p>}
+        <button type="submit" disabled={envoi} className="btn btn-primaire w-full">
+          {envoi ? <Spinner /> : <Icone nom="courrier" className="h-4 w-4" />}
           {envoi ? "Envoi..." : "Envoyer le lien"}
         </button>
-        {message && <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded">{message}</p>}
-        <a href="/connexion" className="block text-center text-sm text-marque-600 underline">Retour a la connexion</a>
       </form>
-    </main>
+    </CadreAuth>
   );
 }

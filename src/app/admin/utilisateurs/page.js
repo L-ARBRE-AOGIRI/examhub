@@ -1,11 +1,27 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import Icone from "@/components/Icone";
+import EnteteAdmin, { AccesRefuse } from "@/components/EnteteAdmin";
+import { useRetours } from "@/components/Retours";
+
+const STATUTS = {
+  VALIDE: { label: "Validé", style: "bg-marque-100 text-marque-800" },
+  BLOQUE: { label: "Bloqué", style: "bg-accent-100 text-accent-800" },
+  REJETE: { label: "Rejeté", style: "bg-gray-200 text-gray-600" },
+  EN_ATTENTE: { label: "En attente", style: "bg-amber-100 text-amber-800" },
+};
+
+function initiales(nom) {
+  return (nom || "?").split(" ").filter(Boolean).slice(0, 2).map((m) => m[0]).join("").toUpperCase();
+}
 
 export default function AdminUtilisateurs() {
   const { data: session, status } = useSession();
+  const { notifier, confirmer } = useRetours();
   const [utilisateurs, setUtilisateurs] = useState([]);
   const [erreur, setErreur] = useState("");
+  const [recherche, setRecherche] = useState("");
 
   const estSuperAdmin = session?.user?.role === "SUPER_ADMIN";
 
@@ -15,7 +31,7 @@ export default function AdminUtilisateurs() {
       setUtilisateurs(await res.json());
     } else {
       const data = await res.json();
-      setErreur("Erreur: " + (data.erreur || res.status));
+      setErreur("Erreur : " + (data.erreur || res.status));
     }
   }
 
@@ -23,7 +39,17 @@ export default function AdminUtilisateurs() {
     if (status === "authenticated") charger();
   }, [status]);
 
-  async function changerStatut(id, statut) {
+  async function changerStatut(id, statut, nom) {
+    if (statut === "BLOQUE") {
+      const ok = await confirmer({
+        titre: "Bloquer " + nom + " ?",
+        message: "Cette personne ne pourra plus se connecter ni publier tant que son compte restera bloqué.",
+        bouton: "Bloquer",
+        icone: "cadenas",
+        danger: true,
+      });
+      if (!ok) return;
+    }
     const res = await fetch("/api/utilisateurs/" + id + "/valider", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -31,14 +57,15 @@ export default function AdminUtilisateurs() {
     });
     if (!res.ok) {
       const data = await res.json();
-      setErreur("Erreur: " + (data.erreur || res.status));
+      setErreur("Erreur : " + (data.erreur || res.status));
       return;
     }
     setErreur("");
+    notifier(statut === "BLOQUE" ? nom + " a été bloqué(e)" : nom + " a été débloqué(e)", statut === "BLOQUE" ? "info" : "succes");
     charger();
   }
 
-  async function changerRole(id, role) {
+  async function changerRole(id, role, nom) {
     const res = await fetch("/api/utilisateurs/" + id + "/role", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,75 +73,119 @@ export default function AdminUtilisateurs() {
     });
     if (!res.ok) {
       const data = await res.json();
-      setErreur("Erreur: " + (data.erreur || res.status));
+      setErreur("Erreur : " + (data.erreur || res.status));
       return;
     }
     setErreur("");
+    notifier(role === "ADMIN" ? nom + " est maintenant admin" : nom + " n'est plus admin");
     charger();
   }
 
   async function supprimer(id, nom) {
-    if (!confirm("Supprimer definitivement " + nom + " et ses epreuves ?")) return;
+    const ok = await confirmer({
+      titre: "Supprimer " + nom + " ?",
+      message: "Le compte et tous ses documents seront supprimés définitivement. Cette action est irréversible.",
+      bouton: "Supprimer définitivement",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await fetch("/api/utilisateurs/" + id, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
-      setErreur("Erreur: " + (data.erreur || res.status));
+      setErreur("Erreur : " + (data.erreur || res.status));
       return;
     }
     setErreur("");
+    notifier(nom + " a été supprimé(e)", "info");
     charger();
   }
 
-  if (status === "loading") return <p className="p-8">Chargement...</p>;
+  if (status === "loading") return <AccesRefuse chargement />;
   if (status !== "authenticated" || (session.user.role !== "SUPER_ADMIN" && session.user.role !== "ADMIN")) {
-    return <p className="p-8">Acces reserve aux admins.</p>;
+    return <AccesRefuse />;
   }
 
-  function badgeCouleur(statut) {
-    if (statut === "VALIDE") return "bg-green-100 text-green-700";
-    if (statut === "BLOQUE") return "bg-red-100 text-red-700";
-    if (statut === "REJETE") return "bg-gray-200 text-gray-600";
-    return "bg-yellow-100 text-yellow-700";
-  }
+  const texte = recherche.trim().toLowerCase();
+  const affiches = utilisateurs.filter((u) =>
+    !texte || [u.nom, u.email, u.filiere || ""].join(" ").toLowerCase().includes(texte)
+  );
 
   return (
-    <main className="max-w-5xl mx-auto p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Tous les utilisateurs ({utilisateurs.length})</h1>
-        <a href="/admin" className="text-marque-600 underline text-sm">Retour au tableau de bord</a>
-      </div>
-      {erreur && <p className="text-red-600 bg-red-50 p-3 rounded mb-4">{erreur}</p>}
+    <main className="flex-1">
+      <EnteteAdmin
+        titre="Utilisateurs"
+        sousTitre={utilisateurs.length + " compte" + (utilisateurs.length > 1 ? "s" : "") + " inscrit" + (utilisateurs.length > 1 ? "s" : "") + " sur la plateforme."}
+        actif="/admin/utilisateurs"
+      />
 
-      <div className="space-y-3">
-        {utilisateurs.map((u) => (
-          <div key={u.id} className="border rounded p-4 flex justify-between items-center">
-            <div>
-              <p className="font-medium">
-                {u.nom}
-                {u.role === "SUPER_ADMIN" && <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">SUPER ADMIN</span>}
-                {u.role === "ADMIN" && <span className="ml-2 text-xs bg-marque-100 text-marque-700 px-2 py-0.5 rounded">ADMIN</span>}
-                <span className={"ml-2 text-xs px-2 py-0.5 rounded " + badgeCouleur(u.statutCompte)}>{u.statutCompte}</span>
-              </p>
-              <p className="text-sm text-gray-500">{u.email}{u.filiere ? " - " + u.filiere : ""} - {u.epreuves.length} epreuve(s)</p>
-            </div>
-            {estSuperAdmin && (
-              <div className="flex gap-2 flex-wrap justify-end">
-                {u.role === "UTILISATEUR" && (
-                  <button onClick={() => changerRole(u.id, "ADMIN")} className="bg-marque-100 text-marque-700 px-3 py-1 rounded text-sm">Promouvoir admin</button>
+      <div className="conteneur py-10">
+        {erreur && <p className="alerte-erreur mb-5">{erreur}</p>}
+
+        <div className="carte mb-5 flex items-center gap-3 p-2">
+          <Icone nom="recherche" className="ml-3 h-5 w-5 shrink-0 text-gray-400" />
+          <input
+            placeholder="Rechercher par nom, email ou filière..."
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            className="w-full bg-transparent py-2.5 outline-none placeholder:text-gray-400"
+          />
+        </div>
+
+        <div className="carte divide-y divide-trait overflow-hidden">
+          {affiches.length === 0 && (
+            <p className="p-8 text-center text-gray-500">Aucun utilisateur trouvé.</p>
+          )}
+          {affiches.map((u) => {
+            const s = STATUTS[u.statutCompte] || STATUTS.EN_ATTENTE;
+            return (
+              <div key={u.id} className="flex flex-col gap-4 p-5 transition hover:bg-papier/60 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-center gap-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-marque-500 to-marque-700 text-sm font-bold text-white">
+                    {initiales(u.nom)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{u.nom}</p>
+                      {u.role === "SUPER_ADMIN" && <span className="pastille bg-purple-100 text-purple-700"><Icone nom="etoile" className="h-3 w-3" />Super admin</span>}
+                      {u.role === "ADMIN" && <span className="pastille bg-sky-100 text-sky-700"><Icone nom="bouclier" className="h-3 w-3" />Admin</span>}
+                      <span className={"pastille " + s.style}>{s.label}</span>
+                    </div>
+                    <p className="mt-0.5 truncate text-sm text-gray-500">
+                      {u.email}{u.filiere ? " · " + u.filiere : ""}
+                    </p>
+                    <p className="text-xs text-gray-400">{u.epreuves.length} document{u.epreuves.length > 1 ? "s" : ""} publié{u.epreuves.length > 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+                {estSuperAdmin && (
+                  <div className="flex shrink-0 flex-wrap gap-2 lg:justify-end">
+                    {u.role === "UTILISATEUR" && (
+                      <button onClick={() => changerRole(u.id, "ADMIN", u.nom)} className="btn btn-sm btn-blanc">
+                        <Icone nom="promouvoir" className="h-4 w-4" /> Promouvoir admin
+                      </button>
+                    )}
+                    {u.role === "ADMIN" && (
+                      <button onClick={() => changerRole(u.id, "UTILISATEUR", u.nom)} className="btn btn-sm btn-blanc">
+                        <Icone nom="retrograder" className="h-4 w-4" /> Retirer admin
+                      </button>
+                    )}
+                    {u.statutCompte !== "BLOQUE" ? (
+                      <button onClick={() => changerStatut(u.id, "BLOQUE", u.nom)} className="btn btn-sm bg-amber-50 text-amber-800 hover:bg-amber-100">
+                        <Icone nom="cadenas" className="h-4 w-4" /> Bloquer
+                      </button>
+                    ) : (
+                      <button onClick={() => changerStatut(u.id, "VALIDE", u.nom)} className="btn btn-sm btn-succes">
+                        <Icone nom="cadenasOuvert" className="h-4 w-4" /> Débloquer
+                      </button>
+                    )}
+                    <button onClick={() => supprimer(u.id, u.nom)} className="btn btn-sm btn-danger-doux">
+                      <Icone nom="corbeille" className="h-4 w-4" /> Supprimer
+                    </button>
+                  </div>
                 )}
-                {u.role === "ADMIN" && (
-                  <button onClick={() => changerRole(u.id, "UTILISATEUR")} className="bg-gray-200 px-3 py-1 rounded text-sm">Retirer admin</button>
-                )}
-                {u.statutCompte !== "BLOQUE" ? (
-                  <button onClick={() => changerStatut(u.id, "BLOQUE")} className="bg-orange-500 text-white px-3 py-1 rounded text-sm">Bloquer</button>
-                ) : (
-                  <button onClick={() => changerStatut(u.id, "VALIDE")} className="bg-green-600 text-white px-3 py-1 rounded text-sm">Debloquer</button>
-                )}
-                <button onClick={() => supprimer(u.id, u.nom)} className="bg-red-600 text-white px-3 py-1 rounded text-sm">Supprimer</button>
               </div>
-            )}
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </main>
   );

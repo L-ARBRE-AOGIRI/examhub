@@ -1,6 +1,8 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import CadreAuth, { ChampMotDePasse, Spinner } from "@/components/CadreAuth";
 
 function FormulaireReinitialisation() {
   const searchParams = useSearchParams();
@@ -11,12 +13,14 @@ function FormulaireReinitialisation() {
   const [confirmation, setConfirmation] = useState("");
   const [voirMotDePasse, setVoirMotDePasse] = useState(false);
   const [message, setMessage] = useState("");
+  const [succes, setSucces] = useState(false);
   const [envoi, setEnvoi] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     if (motDePasse !== confirmation) {
+      setSucces(false);
       setMessage("Les deux mots de passe ne correspondent pas");
       return;
     }
@@ -33,55 +37,67 @@ function FormulaireReinitialisation() {
 
     setEnvoi(false);
     if (res.ok) {
-      setMessage("Mot de passe mis a jour ! Redirection...");
+      setSucces(true);
+      setMessage("Mot de passe mis à jour ! Redirection...");
       setTimeout(() => router.push("/connexion"), 2000);
     } else {
+      setSucces(false);
       setMessage(data.erreur || "Erreur");
     }
   }
 
   if (!token) {
-    return <p className="text-gray-500">Lien invalide. Refaites une demande depuis la page "Mot de passe oublie".</p>;
+    return (
+      <div className="space-y-5">
+        <p className="alerte-erreur">Lien invalide. Refaites une demande depuis la page « Mot de passe oublié ».</p>
+        <Link href="/mot-de-passe-oublie" className="btn btn-primaire w-full">Refaire une demande</Link>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">
-      <h1 className="text-2xl font-bold mb-4">Nouveau mot de passe</h1>
-      <div className="relative">
-        <input
-          type={voirMotDePasse ? "text" : "password"}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div>
+        <label htmlFor="nouveau" className="etiquette">Nouveau mot de passe</label>
+        <ChampMotDePasse
+          id="nouveau"
           placeholder="Nouveau mot de passe"
           value={motDePasse}
           onChange={(e) => setMotDePasse(e.target.value)}
-          className="border p-2 w-full rounded pr-10"
+          autoComplete="new-password"
+          required
+          visible={voirMotDePasse}
+          onBascule={() => setVoirMotDePasse(!voirMotDePasse)}
+        />
+      </div>
+      <div>
+        <label htmlFor="confirmation" className="etiquette">Confirmer le mot de passe</label>
+        <input
+          id="confirmation"
+          type={voirMotDePasse ? "text" : "password"}
+          placeholder="Retapez le mot de passe"
+          value={confirmation}
+          onChange={(e) => setConfirmation(e.target.value)}
+          className="champ"
+          autoComplete="new-password"
           required
         />
-        <button type="button" onClick={() => setVoirMotDePasse(!voirMotDePasse)} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
-          {voirMotDePasse ? "Cacher" : "Voir"}
-        </button>
       </div>
-      <input
-        type={voirMotDePasse ? "text" : "password"}
-        placeholder="Confirmer le mot de passe"
-        value={confirmation}
-        onChange={(e) => setConfirmation(e.target.value)}
-        className="border p-2 w-full rounded"
-        required
-      />
-      <button type="submit" disabled={envoi} className="bg-marque-600 text-white px-4 py-2 rounded w-full hover:bg-marque-700 disabled:opacity-50">
-        {envoi ? "Mise a jour..." : "Changer le mot de passe"}
+      {message && <p className={succes ? "alerte-succes" : "alerte-erreur"}>{message}</p>}
+      <button type="submit" disabled={envoi} className="btn btn-primaire w-full">
+        {envoi && <Spinner />}
+        {envoi ? "Mise à jour..." : "Changer le mot de passe"}
       </button>
-      {message && <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded">{message}</p>}
     </form>
   );
 }
 
 export default function ReinitialiserMotDePasse() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <Suspense fallback={<p>Chargement...</p>}>
+    <CadreAuth titre="Nouveau mot de passe" sousTitre="Choisissez un nouveau mot de passe pour votre compte.">
+      <Suspense fallback={<p className="text-gray-500">Chargement...</p>}>
         <FormulaireReinitialisation />
       </Suspense>
-    </main>
+    </CadreAuth>
   );
 }

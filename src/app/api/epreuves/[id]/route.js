@@ -6,7 +6,7 @@ import { VALEURS_NIVEAU, VALEURS_TYPE, NIVEAUX_ACADEMIQUES, FILIERES, filiereVal
 export async function PUT(req, context) {
   const session = await getSessionActive();
   if (!session || (session.user.role !== "SUPER_ADMIN" && session.user.role !== "ADMIN")) {
-    return Response.json({ erreur: "Acces refuse" }, { status: 403 });
+    return Response.json({ erreur: "Accès refusé" }, { status: 403 });
   }
 
   const { id } = await context.params;
@@ -20,10 +20,10 @@ export async function PUT(req, context) {
   const annee = parseInt(body.annee);
 
   if (!titre || titre.length < 3 || titre.length > 150) {
-    return Response.json({ erreur: "Le titre doit contenir entre 3 et 150 caracteres" }, { status: 400 });
+    return Response.json({ erreur: "Le titre doit contenir entre 3 et 150 caractères" }, { status: 400 });
   }
   if (!matiere || matiere.length < 2 || matiere.length > 80) {
-    return Response.json({ erreur: "La matiere doit contenir entre 2 et 80 caracteres" }, { status: 400 });
+    return Response.json({ erreur: "La matière doit contenir entre 2 et 80 caractères" }, { status: 400 });
   }
   if (!VALEURS_NIVEAU.includes(niveau)) {
     return Response.json({ erreur: "Niveau invalide" }, { status: 400 });
@@ -32,13 +32,13 @@ export async function PUT(req, context) {
     return Response.json({ erreur: "Type invalide" }, { status: 400 });
   }
   if (!annee || annee < 1990 || annee > 2100) {
-    return Response.json({ erreur: "Annee invalide" }, { status: 400 });
+    return Response.json({ erreur: "Année invalide" }, { status: 400 });
   }
   if (NIVEAUX_ACADEMIQUES.includes(niveau) && !filiereValidePourNiveau(niveau, filiere)) {
-    return Response.json({ erreur: "Choisissez une filiere dans la liste" }, { status: 400 });
+    return Response.json({ erreur: "Choisissez une filière dans la liste" }, { status: 400 });
   }
   if (filiere.length > 80) {
-    return Response.json({ erreur: "Filiere trop longue" }, { status: 400 });
+    return Response.json({ erreur: "Filière trop longue" }, { status: 400 });
   }
 
   const epreuve = await prisma.epreuve.update({
@@ -46,5 +46,5 @@ export async function PUT(req, context) {
     data: { titre, type, niveau, filiere: filiere || null, matiere, annee },
   });
 
-  return Response.json({ message: "Epreuve modifiee", epreuve });
+  return Response.json({ message: "Épreuve modifiée", epreuve });
 }

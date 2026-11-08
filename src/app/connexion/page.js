@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import CadreAuth, { ChampMotDePasse, Spinner } from "@/components/CadreAuth";
 
 export default function Connexion() {
   const router = useRouter();
@@ -39,45 +41,43 @@ export default function Connexion() {
         router.push("/epreuves");
       }
     } catch {
-      setErreur("Une erreur est survenue. Reessayez.");
+      setErreur("Une erreur est survenue. Réessayez.");
       setChargement(false);
     }
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">
-        <h1 className="text-2xl font-bold mb-4">Connexion</h1>
-        <input name="email" type="email" placeholder="Email" className="border p-2 w-full rounded" required />
-        <div className="relative">
-          <input
+    <CadreAuth
+      titre="Bon retour 👋"
+      sousTitre="Connectez-vous pour télécharger les épreuves et partager les vôtres."
+      pied={<>Pas encore de compte ? <Link href="/inscription" className="lien">Créer un compte</Link></>}
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="email" className="etiquette">Adresse email</label>
+          <input id="email" name="email" type="email" placeholder="vous@exemple.com" className="champ" autoComplete="email" required />
+        </div>
+        <div>
+          <div className="flex items-center justify-between">
+            <label htmlFor="motDePasse" className="etiquette">Mot de passe</label>
+            <Link href="/mot-de-passe-oublie" className="mb-1.5 text-sm lien">Oublié ?</Link>
+          </div>
+          <ChampMotDePasse
+            id="motDePasse"
             name="motDePasse"
-            type={voirMotDePasse ? "text" : "password"}
-            placeholder="Mot de passe"
-            className="border p-2 w-full rounded pr-10"
+            placeholder="••••••••"
+            autoComplete="current-password"
             required
+            visible={voirMotDePasse}
+            onBascule={() => setVoirMotDePasse(!voirMotDePasse)}
           />
-          <button
-            type="button"
-            onClick={() => setVoirMotDePasse(!voirMotDePasse)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm"
-          >
-            {voirMotDePasse ? "Cacher" : "Voir"}
-          </button>
         </div>
-        <div className="text-right">
-          <a href="/mot-de-passe-oublie" className="text-sm text-marque-600 underline">Mot de passe oublie ?</a>
-        </div>
-        <button
-          type="submit"
-          disabled={chargement}
-          className="bg-marque-600 text-white px-4 py-2 rounded w-full hover:bg-marque-700 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {chargement && <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>}
+        {erreur && <p className="alerte-erreur">{erreur}</p>}
+        <button type="submit" disabled={chargement} className="btn btn-primaire w-full">
+          {chargement && <Spinner />}
           {chargement ? "Connexion..." : "Se connecter"}
         </button>
-        {erreur && <p className="text-sm text-red-600">{erreur}</p>}
       </form>
-    </main>
+    </CadreAuth>
   );
 }

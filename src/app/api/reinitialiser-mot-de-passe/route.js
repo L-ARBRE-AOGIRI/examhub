@@ -7,7 +7,7 @@ export async function POST(req) {
   const motDePasse = (body.motDePasse || "").toString();
 
   if (motDePasse.length < 8 || motDePasse.length > 200) {
-    return Response.json({ erreur: "Le mot de passe doit contenir au moins 8 caracteres" }, { status: 400 });
+    return Response.json({ erreur: "Le mot de passe doit contenir au moins 8 caractères" }, { status: 400 });
   }
 
   const user = await prisma.user.findFirst({
@@ -18,7 +18,7 @@ export async function POST(req) {
   });
 
   if (!user) {
-    return Response.json({ erreur: "Lien invalide ou expire. Refaites une demande" }, { status: 400 });
+    return Response.json({ erreur: "Lien invalide ou expiré. Refaites une demande" }, { status: 400 });
   }
 
   const hash = await bcrypt.hash(motDePasse, 10);
@@ -28,5 +28,5 @@ export async function POST(req) {
     data: { motDePasse: hash, tokenReset: null, tokenResetExpire: null },
   });
 
-  return Response.json({ message: "Mot de passe mis a jour" });
+  return Response.json({ message: "Mot de passe mis à jour" });
 }

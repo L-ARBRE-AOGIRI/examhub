@@ -7,7 +7,7 @@ export async function POST(req) {
   const ip = req.headers.get("x-forwarded-for") || "inconnu";
   const limite = verifierLimiteRequetes("reset:" + ip, 3, 60 * 1000);
   if (!limite.autorise) {
-    return Response.json({ erreur: "Trop de tentatives. Reessayez dans quelques instants" }, { status: 429 });
+    return Response.json({ erreur: "Trop de tentatives. Réessayez dans quelques instants" }, { status: 429 });
   }
 
   const body = await req.json();
@@ -34,5 +34,5 @@ export async function POST(req) {
   }
 
   // Meme reponse que l email existe ou non, pour ne pas reveler quels emails sont inscrits
-  return Response.json({ message: "Si un compte existe avec cet email, un lien de reinitialisation a ete envoye" });
+  return Response.json({ message: "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé" });
 }

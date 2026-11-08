@@ -16,7 +16,7 @@ export const authOptions = {
 
         const blocage = verifierBlocageConnexion(email);
         if (blocage.bloque) {
-          throw new Error("Trop de tentatives. Reessayez dans " + blocage.minutesRestantes + " minute(s)");
+          throw new Error("Trop de tentatives. Réessayez dans " + blocage.minutesRestantes + " minute(s)");
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -32,7 +32,7 @@ export const authOptions = {
         }
 
         if (user.statutCompte === "BLOQUE") {
-          throw new Error("Votre compte a ete bloque");
+          throw new Error("Votre compte a été bloqué");
         }
 
         reinitialiserTentativesConnexion(email);

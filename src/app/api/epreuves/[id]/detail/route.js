@@ -1,4 +1,5 @@
 ﻿import { prisma } from "@/lib/prisma";
+import { versionPublique } from "@/lib/epreuves";
 
 export async function GET(req, context) {
   const { id } = await context.params;
@@ -9,7 +10,7 @@ export async function GET(req, context) {
   });
 
   if (!epreuve || epreuve.statut !== "VALIDEE") {
-    return Response.json({ erreur: "Epreuve introuvable" }, { status: 404 });
+    return Response.json({ erreur: "Épreuve introuvable" }, { status: 404 });
   }
 
   const similaires = await prisma.epreuve.findMany({
@@ -23,5 +24,8 @@ export async function GET(req, context) {
     orderBy: { createdAt: "desc" },
   });
 
-  return Response.json({ epreuve, similaires });
+  return Response.json({
+    epreuve: versionPublique(epreuve),
+    similaires: similaires.map(versionPublique),
+  });
 }

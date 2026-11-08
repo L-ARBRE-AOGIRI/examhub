@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth";
 export async function GET() {
   const session = await getSessionActive();
   if (!session) {
-    return Response.json({ erreur: "Non connecte" }, { status: 401 });
+    return Response.json({ erreur: "Non connecté" }, { status: 401 });
   }
 
   const epreuves = await prisma.epreuve.findMany({

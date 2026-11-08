@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth";
 export async function GET() {
   const session = await getSessionActive();
   if (!session || (session.user.role !== "SUPER_ADMIN" && session.user.role !== "ADMIN")) {
-    return Response.json({ erreur: "Acces refuse" }, { status: 403 });
+    return Response.json({ erreur: "Accès refusé" }, { status: 403 });
   }
 
   const epreuves = await prisma.epreuve.findMany({
